@@ -8,10 +8,12 @@ namespace Lit
     public class WordCount : IProvider
     {
         int _count = 0;
+        int _lines = 0;
         public WordCount(){}
 
         public Task<int> ProcessTextAsync(Task<string> text)
         {
+            _lines++;
             return CountAddAsync(text);
         }
 
@@ -19,6 +21,7 @@ namespace Lit
         {
             var d = new Dictionary<string,object>();
             d.Add("count",_count);
+            d.Add("lines", _lines);
             return d;
         }
 
@@ -51,7 +54,15 @@ namespace Lit
 
         public async Task<int> CountAddAsync(Task<string> text)
         {
+            if (text == null)
+            {
+                Console.WriteLine("text is null");
+            }
             var t = await text;
+            if (string.IsNullOrWhiteSpace(t))
+            {
+                return 0;
+            }
             var count = CountAdd(t);
             return count;
         }
