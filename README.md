@@ -42,11 +42,12 @@ Alternatively, you can `Assembly` class APIs. `Assembly.LoadFrom` will load asse
 
 ## Loading an assembly by path as an add-in
 
-One challenge of the current ALC implementation is that there is no way for add-ins to load files by path without coordination with some kind of add-in host within the ALC. This seems too restrictive.
+There is a simple pattern that can used to acquire a reference to the current context, using the `AssemblyLoadContext.GetLoadContext` method, as follows (assuming the calling type is `Class1`).
 
-An [AssemblyLoadContext.Current](https://github.com/dotnet/coreclr/issues/10233) API would enable ALCs to load dependencies independent of its host. One challenge of that API is it would prevent hosts from building restrictive environments, where add-ins are not allowed to load additional assemblies. This option seems too open.
+```csharp
+var context = AssemblyLoadContext.GetLoadContext(typeof(Class1).Assembly);
+```
 
-Custom ALCs must derive from AssemblyLoadContext. One can imagine a small set of ALC implementations becoming popular and enabling their own loading policies for add-ins. One can imagine a `ComponentHost` ALC implementation that exposing `ComponentHost.Current` to add-ins that it hosts, and `ComponentHostRestrictive` not doing that. One can also imagine a middle ground API that enables both scenarios, such as `ComponentHost.Current.RequestAssemblyLoadByPath()`. The problem with this approach is that an add-in gets tied to a specific ALC implementation. This seems too restrictive.
+Once this reference is acquired, you can call `AssemblyLoadContext` instance methods to load assemblies from an addin.
 
-Another option is that 
-
+Some developers have asked for an [AssemblyLoadContext.Current](https://github.com/dotnet/coreclr/issues/10233) API to load dependencies. This API doesn't seem necessary.
