@@ -11,6 +11,7 @@ namespace guttenapp
     {
         static async Task Main(string[] args)
         {
+            Console.WriteLine("app2");
             var books = new Dictionary<string,string> {
                 {"Pride and Prejudice", "http://www.gutenberg.org/files/1342/1342-0.txt"},
                 {"The War That Will End War", "http://www.gutenberg.org/files/57481/57481-0.txt"},
@@ -21,8 +22,10 @@ namespace guttenapp
                 {"Gulliver's Travels","http://www.gutenberg.org/files/829/829-0.txt"}
                 };
 
-            var wordCountPath =@"C:\git\dotnet-core-assembly-loading\src\gutenapp\wordcount\bin\Debug\netstandard2.0\wordcount.dll";
-            //var wordCountPath = @"/Users/rlander/git/dotnet-core-assembly-loading/src/gutenapp/wordcount/bin/Debug/netstandard2.0/wordcount.dll";
+            var ass = new AssemblyFileResolver();
+            var (found, wordCountPath, candidateLibraries ) = ass.GetComponentLibrary("wordcount");
+
+            Console.WriteLine($"Path: {wordCountPath}");
             var (wordcountContext, wordCountAsm) = ComponentContext.CreateContext(wordCountPath);
             
             var client = new HttpClient();
