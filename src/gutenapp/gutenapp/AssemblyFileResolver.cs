@@ -205,7 +205,10 @@ public class AssemblyFileResolver
             foreach (var dir in dirs)
             {
                 var (libraryFound, libraryPath) = ProbeDirectoryForLibrary(dir, library);
-                candidateLibs.Add(libraryPath);
+                if (libraryFound)
+                {
+                    candidateLibs.Add(libraryPath);
+                }
             }
         }
 

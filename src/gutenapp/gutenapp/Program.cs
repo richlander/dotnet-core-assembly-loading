@@ -30,7 +30,7 @@ namespace guttenapp
 
             if (!wordcountFound || !mostcommonwordsFound)
             {
-                throw new Exception();
+                throw new ApplicationException("Can't find 'wordcount' or 'mostcommonwords' components.");
             }
 
             var (wordcountContext, wordCountAsm) = ComponentContext.CreateContext(wordCountPath);
