@@ -78,7 +78,7 @@ namespace Lit
                     var span = text.AsSpan(start, index - start);
                     var loweredWord = span.ToString().ToLowerInvariant();
                     wasSpace = true;
-                    start = index;
+                    start = index + 1;
                     yield return loweredWord;
 
                 }

@@ -6,8 +6,7 @@ $GutenappDir = Join-Path $BaseGutenapp "gutenapp"
 $Gutenapp = Join-Path $GutenappDir "gutenapp.csproj"
 
 
-$build = Join-Path "." "build.ps1"
-$build
+.\build.ps1
 
 dotnet run --project $Gutenapp -c debug
 dotnet run --project $Gutenapp -c release
