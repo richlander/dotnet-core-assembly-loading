@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using interfaces;
 
@@ -11,7 +13,6 @@ namespace guttenapp
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("app2");
             var books = new Dictionary<string,string> {
                 {"Pride and Prejudice", "http://www.gutenberg.org/files/1342/1342-0.txt"},
                 {"The War That Will End War", "http://www.gutenberg.org/files/57481/57481-0.txt"},
@@ -22,11 +23,19 @@ namespace guttenapp
                 {"Gulliver's Travels","http://www.gutenberg.org/files/829/829-0.txt"}
                 };
 
-            var ass = new AssemblyFileResolver();
-            var (found, wordCountPath, candidateLibraries ) = ass.GetComponentLibrary("wordcount");
+            var assemblyResolver = new AssemblyFileResolver();
+            var (wordcountFound, wordCountPath, wordCountCandidates ) = assemblyResolver.GetComponentLibrary("wordcount");
 
-            Console.WriteLine($"Path: {wordCountPath}");
+            var (mostcommonwordsFound, mostcommonwordsPath, mostcommonwordsCandidates) = assemblyResolver.GetComponentLibrary("mostcommonwords");
+
+            if (!wordcountFound || !mostcommonwordsFound)
+            {
+                throw new Exception();
+            }
+
             var (wordcountContext, wordCountAsm) = ComponentContext.CreateContext(wordCountPath);
+
+            var (mostcommonwordsContext, mostcommonwordsAsm) = ComponentContext.CreateContext(mostcommonwordsPath);
             
             var client = new HttpClient();
 
@@ -37,23 +46,59 @@ namespace guttenapp
                 using(var reader = new StreamReader(stream))
                 {
                     var wordCount = (IProvider)wordCountAsm.CreateInstance("Lit.WordCount");
+                    var mostcommonwords = (IProvider)mostcommonwordsAsm.CreateInstance("Lit.MostCommonWords");
                     Task<string> line;
                     while (!reader.EndOfStream)
                     {
                         line = reader.ReadLineAsync();
                         try
                         {
-                            var i = await wordCount.ProcessTextAsync(line);
+                            var wordCountTask =  wordCount.ProcessTextAsync(line);
+                            var mostcommonwordsTask = mostcommonwords.ProcessTextAsync(line);
+                            await Task.WhenAll(wordCountTask, mostcommonwordsTask);
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine(e.Message);
+                            throw e;
                         }
                     }
 
-                    var totalCount = wordCount.GetReport();
-                    Console.WriteLine($"Book: {book.Key}; Word Count: {totalCount["count"]}");
+                    var wordcountReport = wordCount.GetReport();
+                    Console.WriteLine($"Book: {book.Key}; Word Count: {wordcountReport["count"]}");
+                    Console.WriteLine("Most common words, with count:");
+                    var mostcommonwordsReport = mostcommonwords.GetReport();
+                    var orderedMostcommonwords = (IOrderedEnumerable<KeyValuePair<string,int>>)mostcommonwordsReport["words"];
+                    var mostcommonwordsCount = (int)mostcommonwordsReport["count"];
+
+                    var index = 0;
+                    foreach (var word in orderedMostcommonwords)
+                    {
+                        if (index++ >= 10)
+                        {
+                            break;
+                        }
+                        Console.WriteLine($"{word.Key}; {word.Value}");
+                    }
                 }
+            }
+
+            Console.WriteLine();
+            foreach(var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var context = AssemblyLoadContext.GetLoadContext(asm);
+                var def = AssemblyLoadContext.Default;
+                var isDefaultContext = context == def;
+                var isWordcountContext = context == wordcountContext;
+                var isMostcommonwordsContext = context == mostcommonwordsContext;
+
+                if (asm.FullName.StartsWith("System") && isDefaultContext)
+                {
+                    continue;
+                }
+
+                Console.WriteLine($"{asm.FullName}");
+                Console.WriteLine($"Default: {isDefaultContext}; WordCount: {isWordcountContext}; MostCommonWords: {isMostcommonwordsContext}");
             }
             
         }

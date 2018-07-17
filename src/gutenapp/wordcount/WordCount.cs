@@ -54,10 +54,6 @@ namespace Lit
 
         public async Task<int> CountAddAsync(Task<string> text)
         {
-            if (text == null)
-            {
-                Console.WriteLine("text is null");
-            }
             var t = await text;
             if (string.IsNullOrWhiteSpace(t))
             {
