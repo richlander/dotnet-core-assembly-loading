@@ -97,7 +97,7 @@ namespace guttenapp
                     continue;
                 }
 
-                Console.WriteLine($"{asm.FullName}");
+                Console.WriteLine($"{asm.FullName}  {asm.Location}");
                 Console.WriteLine($"Default: {isDefaultContext}; WordCount: {isWordcountContext}; MostCommonWords: {isMostcommonwordsContext}");
             }
             
