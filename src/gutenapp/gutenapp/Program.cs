@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 using interfaces;
+using ComponentHost;
 
 namespace guttenapp
 {
@@ -23,8 +24,10 @@ namespace guttenapp
                 {"Gulliver's Travels","http://www.gutenberg.org/files/829/829-0.txt"}
                 };
 
-            var assemblyResolver = new AssemblyFileResolver();
-            var (wordcountFound, wordCountPath, wordCountCandidates ) = assemblyResolver.GetComponentLibrary("wordcount");
+            var assemblyResolver = new ComponentResolver();
+            assemblyResolver.SetBaseDirectory(typeof(Program).Assembly);
+
+            var wordcountBindingResult = assemblyResolver.FindLibraryInComponentBinDirectory("wordcount","wordcount.dll");
 
             var (mostcommonwordsFound, mostcommonwordsPath, mostcommonwordsCandidates) = assemblyResolver.GetComponentLibrary("mostcommonwords");
 
