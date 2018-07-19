@@ -7,6 +7,7 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using interfaces;
 using ComponentHost;
+using ComponentResolverStrategies;
 
 namespace guttenapp
 {
@@ -24,21 +25,37 @@ namespace guttenapp
                 {"Gulliver's Travels","http://www.gutenberg.org/files/829/829-0.txt"}
                 };
 
-            var assemblyResolver = new ComponentResolver();
-            assemblyResolver.SetBaseDirectory(typeof(Program).Assembly);
+            //var assemblyResolver = new ComponentResolver();
+            //assemblyResolver.SetBaseDirectory(typeof(Program).Assembly);
 
-            var wordcountBindingResult = assemblyResolver.FindLibraryInComponentBinDirectory("wordcount","wordcount.dll");
+            var wordCountName = "wordcount";
+            var wordcountContext = new ComponentContext(
+#if DEBUG
+                new ComponentResolverBinDirectoryStrategy(wordCountName),
+#endif
+                new ComponentResolverProductionStrategy(wordCountName)
+#if !DEBUG
+                ,
+                new ComponentResolverProductionStrategy(wordCountName)
+#endif
 
-            var (mostcommonwordsFound, mostcommonwordsPath, mostcommonwordsCandidates) = assemblyResolver.GetComponentLibrary("mostcommonwords");
+            );
 
-            if (!wordcountFound || !mostcommonwordsFound)
-            {
-                throw new Exception();
-            }
+            var mostcommonwordsName = "mostcommonwords";
+            var mostcommonwordsContext = new ComponentContext(
+#if DEBUG
+                new ComponentResolverBinDirectoryStrategy(mostcommonwordsName),
+#endif
+                new ComponentResolverProductionStrategy(mostcommonwordsName)
+#if !DEBUG
+                ,
+                new ComponentResolverProductionStrategy(mostcommonwordsName)
+#endif
 
-            var (wordcountContext, wordCountAsm) = ComponentContext.CreateContext(wordCountPath);
+            );
 
-            var (mostcommonwordsContext, mostcommonwordsAsm) = ComponentContext.CreateContext(mostcommonwordsPath);
+            var wordCountAsm = wordcountContext.LoadAssemblyWithResolver("wordcount.dll");
+            var mostcommonwordsAsm = mostcommonwordsContext.LoadAssemblyWithResolver("mostcommonwords.dll");
             
             var client = new HttpClient();
 

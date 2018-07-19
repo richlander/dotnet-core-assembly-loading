@@ -2,10 +2,10 @@ namespace ComponentHost
 {
     public struct ComponentResolution
     {
-        public string Library;
-        public string Component;
-        public bool Resolved;
-        public string ResolvedPath;
-        public string[] Candidates;
+        public string RequestedLibrary;
+        public string RequestedComponent;
+        public bool ResolvedLibrary;
+        public string ResolvedLibraryPath;
+        public string[] LibraryCandidates;
     }    
 }
