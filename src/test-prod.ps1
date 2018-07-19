@@ -17,10 +17,10 @@ Set-Location $BasePath
 
 $testdir = Join-Path . testdir
 New-Item -ItemType Directory -Path $testdir -Force
-Copy-Item (Join-Path $GutenappDir out *) $testdir -Force
+Copy-Item ([System.IO.Path]::Combine($GutenappDir, "out", "*")) $testdir -Force
 New-Item -ItemType Directory -Path (Join-Path $testdir wordcount) -Force
-Copy-Item (Join-Path $WordcountDir out *) (Join-Path $testdir wordcount) -Force
+Copy-Item ([System.IO.Path]::Combine($WordcountDir, "out", "*")) (Join-Path $testdir wordcount) -Force
 New-Item -ItemType Directory -Path (Join-Path $testdir mostcommonwords) -Force
-Copy-Item (Join-Path $MostcommonwordsDir out *) (Join-Path $testdir mostcommonwords) -Force
+Copy-Item ([System.IO.Path]::Combine($MostcommonwordsDir, "out", "*")) (Join-Path $testdir mostcommonwords) -Force
 
 dotnet (Join-Path $testdir gutenapp.dll)
