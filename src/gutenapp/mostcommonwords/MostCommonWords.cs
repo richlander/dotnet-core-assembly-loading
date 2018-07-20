@@ -27,64 +27,58 @@ namespace Lit
 
         private int UpdateWordCounts(string text)
         {
-            var newwords = 0;
-            foreach (var word in GetWords(text))
-            {
-                if (word == string.Empty)
-                {
-                    continue;
-                }
-                else if(_wordsCount.ContainsKey(word))
-                {
-                    _wordsCount[word]++;
-                }
-                else
-                {
-                    newwords++;
-                    _wordsCount.Add(word,1);
-                }
-            }
-            return newwords;
-        }
-
-        private IEnumerable<string> GetWords(string text)
-        {
             var wasSpace = false;
             var lengthTest = text.Length -1;
             var start = 0;
             var index = 0;
-            var loop = true;
+            var newwords = 0;
 
             if (text == string.Empty)
             {
-                loop = false;
-                yield return string.Empty;
+                return 0;
             }
             
-            Span<char> d = stackalloc char[255];
+            Span<char> buffer = stackalloc char[100];
             
-            while (loop)
+            while (true)
             {
                 
                 var c = text[index];
                 var isSpace = c == ' ';
-                
+                string loweredWord = String.Empty;
+
                 if (index >= lengthTest && index > 0)
                 {
                     var span = text.AsSpan(start);
-                    span.ToLowerInvariant(d);
-                    var loweredWord = d.Slice(0,text.Length).ToString();
-                    yield return loweredWord;
+
+                    if (text.Length >100)
+                    {
+                        loweredWord = span.ToString().ToLowerInvariant();
+                    }
+                    else
+                    {
+                        span.ToLowerInvariant(buffer);
+                        loweredWord = buffer.Slice(0, text.Length).ToString();
+                    }
+                    newwords += AddWord(loweredWord);
                     break;
                 }
                 else if (isSpace && !wasSpace)
                 {
-                    var span = text.AsSpan(start, index - start);
-                    var loweredWord = span.ToString().ToLowerInvariant();
+                    var end = index - start;
+                    var span = text.AsSpan(start, end);
+                    if (text.Length > 100)
+                    {
+                        loweredWord = span.ToString().ToLowerInvariant();
+                    }
+                    else
+                    {
+                        span.ToLowerInvariant(buffer);
+                        loweredWord = buffer.Slice(0, end).ToString();
+                    }
                     wasSpace = true;
                     start = index + 1;
-                    yield return loweredWord;
-
+                    newwords += AddWord(loweredWord);
                 }
                 else if (!isSpace && wasSpace)
                 {
@@ -92,7 +86,25 @@ namespace Lit
                 }
                 index++;
             }
+            return newwords;
         }
-                
+
+        private int AddWord(string word)
+        {
+            if (word == string.Empty)
+            {
+                return 0;
+            }
+            else if (_wordsCount.ContainsKey(word))
+            {
+                _wordsCount[word]++;
+                return 1;
+            }
+            else
+            {
+                _wordsCount.Add(word, 1);
+                return 0;
+            }
+        }
     }
 }
