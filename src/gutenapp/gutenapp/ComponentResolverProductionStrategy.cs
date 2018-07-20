@@ -16,12 +16,7 @@ namespace ComponentResolverStrategies
 {
     public class ComponentResolverProductionStrategy : ComponentResolver
     {
-        public ComponentResolverProductionStrategy(string component)
-        {
-            BaseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
-            Component = component;
-        }
-        
+       
         public override ComponentResolution FindLibrary(string library)
         {
             if (string.IsNullOrWhiteSpace(library))
@@ -35,16 +30,26 @@ namespace ComponentResolverStrategies
 
             if (!componentDirFound)
             {
-                resolution.ResolvedLibrary = false;
+                resolution.ResolvedComponent = false;
                 return resolution;
             }
 
             return ProbeDirectoryForLibrary(componentDir, library);
         }
 
-        public bool SetComponentDirectory(string directory)
+        public override bool SetComponent(string component)
         {
-            throw new System.NotImplementedException();
+            var (componentDirectoryFound, componentDirectory) = BaseDirectory.TryNavigateDirectoryDown(component);
+
+            if (!componentDirectoryFound)
+            {
+                return false;
+            }
+
+            Component = component;
+            BaseDirectory = componentDirectory;
+            return true;
+
         }
     }
 }

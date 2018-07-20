@@ -60,16 +60,20 @@ namespace Lit
                 loop = false;
                 yield return string.Empty;
             }
-
+            
+            Span<char> d = stackalloc char[255];
+            
             while (loop)
             {
+                
                 var c = text[index];
-                var isSpace = Char.IsWhiteSpace(c);
+                var isSpace = c == ' ';
                 
                 if (index >= lengthTest && index > 0)
                 {
                     var span = text.AsSpan(start);
-                    var loweredWord = span.ToString().ToLowerInvariant();
+                    span.ToLowerInvariant(d);
+                    var loweredWord = d.Slice(0,text.Length).ToString();
                     yield return loweredWord;
                     break;
                 }

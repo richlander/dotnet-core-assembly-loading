@@ -25,33 +25,14 @@ namespace guttenapp
                 {"Gulliver's Travels","http://www.gutenberg.org/files/829/829-0.txt"}
                 };
 
-            //var assemblyResolver = new ComponentResolver();
-            //assemblyResolver.SetBaseDirectory(typeof(Program).Assembly);
-
-            var wordCountName = "wordcount";
-            var wordcountContext = new ComponentContext(
-#if DEBUG
-                new ComponentResolverBinDirectoryStrategy(wordCountName),
-#endif
-                new ComponentResolverProductionStrategy(wordCountName)
-#if !DEBUG
-                ,
-                new ComponentResolverProductionStrategy(wordCountName)
-#endif
-
+            var wordcountContext = new ComponentContext("wordcount",
+                new ComponentResolverProductionStrategy(),
+                new ComponentResolverBinDirectoryStrategy()
             );
 
-            var mostcommonwordsName = "mostcommonwords";
-            var mostcommonwordsContext = new ComponentContext(
-#if DEBUG
-                new ComponentResolverBinDirectoryStrategy(mostcommonwordsName),
-#endif
-                new ComponentResolverProductionStrategy(mostcommonwordsName)
-#if !DEBUG
-                ,
-                new ComponentResolverProductionStrategy(mostcommonwordsName)
-#endif
-
+            var mostcommonwordsContext = new ComponentContext("mostcommonwords",
+                new ComponentResolverProductionStrategy(),
+                new ComponentResolverBinDirectoryStrategy()
             );
 
             var wordCountAsm = wordcountContext.LoadAssemblyWithResolver("wordcount.dll");

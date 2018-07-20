@@ -12,6 +12,16 @@ namespace ComponentHost
             BaseDirectory = new DirectoryInfo(AppContext.BaseDirectory);
         }
 
+        public DirectoryInfo BaseDirectory { get; set; }
+
+        public string Component { get; set; }
+
+        public virtual bool SetComponent(string component)
+        {
+            Component = component;
+            return true;
+        }
+
         public virtual ComponentResolution FindLibrary(string library)
         {
             if (string.IsNullOrWhiteSpace(library))
@@ -22,22 +32,25 @@ namespace ComponentHost
             return ProbeDirectoryForLibrary(BaseDirectory,library);
         }
 
-        public DirectoryInfo BaseDirectory {get;set;}
-
-        public string Component {get;set;}
-
         protected ComponentResolution ProbeDirectoryForLibrary(DirectoryInfo probingDir, string library)
         {
-            var resolution = new ComponentResolution();
-            resolution.RequestedLibrary = library;
             var fileList = probingDir.GetFiles(library);
             if (fileList.Length != 1)
             {
-                resolution.ResolvedLibrary = false;
-                return resolution;
+                return GetFalseResolution(library);
             }
-            resolution.ResolvedLibrary = true;
-            resolution.ResolvedLibraryPath = fileList[0].FullName;
+            var resolution = new ComponentResolution();
+            resolution.RequestedComponent = library;
+            resolution.ResolvedComponent = true;
+            resolution.ResolvedPath = fileList[0].FullName;
+            return resolution;
+        }
+
+        protected ComponentResolution GetFalseResolution(string component)
+        {
+            var resolution = new ComponentResolution();
+            resolution.RequestedComponent = component;
+            resolution.ResolvedComponent = false;
             return resolution;
         }
     }

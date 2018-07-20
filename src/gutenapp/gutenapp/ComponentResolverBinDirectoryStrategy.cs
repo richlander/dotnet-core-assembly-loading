@@ -34,13 +34,6 @@ namespace ComponentResolverStrategies
         private readonly string[] TARGETS = new string[] { "netcore", "netstandard" };
         private string _appTFM = string.Empty;
         private string _buildKind = string.Empty;
-        private bool _componentDirectoryResolved;
-
-
-        public ComponentResolverBinDirectoryStrategy(string component)
-        {
-            Component = component;
-        }
 
         public override ComponentResolution FindLibrary(string library)
         {
@@ -48,22 +41,19 @@ namespace ComponentResolverStrategies
             {
                 throw new ArgumentException("libraryName not set");
             }
-            if (!_componentDirectoryResolved)
-            {
-                _componentDirectoryResolved = SetComponentDirectory();
-            }
             return FindLibraryInComponentBinDirectory(library);
         }
 
-        private bool SetComponentDirectory()
+        public override bool SetComponent(string component)
         {
-            var (componentDirectoryFound, componentDirectory) = TryFindComponentDirectory(Component);
-            if (componentDirectoryFound)
+            var (componentDirectoryFound, componentDirectory) = TryFindComponentDirectory(component);
+            if (!componentDirectoryFound)
             {
-                BaseDirectory = componentDirectory;
-                return true;
+                return false;
             }
-            return false;
+            Component = component;
+            BaseDirectory = componentDirectory;
+            return true;
         }
         
         private (bool componentDirectoryFound, DirectoryInfo componentDirectory) TryFindComponentDirectory(string component)
@@ -190,7 +180,7 @@ namespace ComponentResolverStrategies
             ComponentResolution False()
             {
                 var resolution = new ComponentResolution();
-                resolution.ResolvedLibrary = false;
+                resolution.ResolvedComponent = false;
                 return resolution;
             }
         }
@@ -206,22 +196,22 @@ namespace ComponentResolverStrategies
                 foreach (var dir in dirs)
                 {
                     var probeResult = ProbeDirectoryForLibrary(dir, library);
-                    if (probeResult.ResolvedLibrary)
+                    if (probeResult.ResolvedComponent)
                     {
-                        candidateLibs.Add(probeResult.ResolvedLibraryPath);
+                        candidateLibs.Add(probeResult.ResolvedPath);
                     }
                 }
             }
 
             if (candidateLibs.Count == 0)
             {
-                resolution.ResolvedLibrary = false;
+                resolution.ResolvedComponent = false;
             }
             else
             {
-                resolution.ResolvedLibrary = true;
-                resolution.LibraryCandidates = candidateLibs.ToArray();
-                resolution.ResolvedLibraryPath = resolution.LibraryCandidates[0];
+                resolution.ResolvedComponent = true;
+                resolution.Candidates = candidateLibs.ToArray();
+                resolution.ResolvedPath = resolution.Candidates[0];
             }
 
             return resolution;

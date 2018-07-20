@@ -9,10 +9,17 @@ namespace ComponentHost
 
         private ComponentResolver[] _resolvers;
 
-        public ComponentContext(params ComponentResolver[] resolvers)
+        public ComponentContext(string component, params ComponentResolver[] resolvers)
         {
             _resolvers = resolvers;
+            Component = component;
         }
+
+        private ComponentContext()
+        {
+        }
+
+        public string Component {get; private set;}
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
@@ -28,17 +35,20 @@ namespace ComponentHost
 
             foreach (var resolver in _resolvers)
             {
-                var componentResolution = resolver.FindLibrary(assemblyFile);
-                if (componentResolution.ResolvedLibrary)
+                var componentResolution = resolver.SetComponent(Component);
+                if (!componentResolution)
                 {
-                    return LoadFromAssemblyPath(componentResolution.ResolvedLibraryPath);
+                    continue;
                 }
-
+                var libraryResolution = resolver.FindLibrary(assemblyFile);
+                if (libraryResolution.ResolvedComponent)
+                {
+                    return LoadFromAssemblyPath(libraryResolution.ResolvedPath);    
+                }
             }
 
             return null;
         }
-
 
         public static (ComponentContext, Assembly) CreateContext(string assemblyPath)
         {
